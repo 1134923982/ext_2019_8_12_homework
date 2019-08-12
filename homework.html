@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <link rel="stylesheet" type="text/css" href="./ext/resources/css/ext-all.css" />
+    <!-- LIBS -->
+    <script type="text/javascript" src="./ext/adapter/ext/ext-base.js"></script>
+    <!-- ENDLIBS -->
+    <script type="text/javascript" src="./ext/ext-all.js"></script>
+    <script type="text/javascript" src="./ext/Spinner.js"></script>
+    <script type="text/javascript" src="./ext/SpinnerField.js"></script>
+    <link rel="stylesheet" type="text/css" href="./ext/Spinner.css" />
+
+    <style>
+    </style>
+    <script>
+        Ext.onReady(function() {
+            var editMenu = new Ext.menu.Menu({
+                items: [
+                    {
+                        text: 'Reset',
+                        listeners: {
+                            'click': function () {
+                                Ext.getCmp('textarea').setValue('')
+                                Ext.getCmp('reply').disable()
+                            }
+                        }
+                    }
+                ]
+            })
+
+            var insertMenu = new Ext.menu.Menu({
+                items:[
+                    {
+                        text: 'Table',
+                        listeners: {
+                            'click': function () {
+                                tableWindow.show()
+                            }
+                        }
+                    }
+                ]
+            })
+
+
+            var tb = new Ext.Toolbar({
+                // renderTo: 'tb',
+                items: [
+                    {
+                        text: 'Edit',
+                        menu: editMenu
+                    },
+                    {
+                        text: 'Insert',
+                        menu: insertMenu
+                    }
+                ]
+            })
+
+            var tpl = new Ext.XTemplate([
+                `<table border="2">
+                    <tpl for="values">
+                        <tr height = '20px'>
+                            <tpl for="values">
+                                <td width="20px"></td>
+                            </tpl>
+                        </tr>
+                    </tpl>
+                 </table>`
+            ])
+
+            var tablePanel = new Ext.Panel({
+                id: 'tablePanel',
+                tpl: tpl,
+                // data: data,
+            })
+
+            var panel = new Ext.Panel({
+                // title: 'edit',
+                id: 'panel',
+                items:[
+                    tb,
+                    {
+                        xtype: 'textarea',
+                        id: 'textarea',
+
+                        width: 400,
+                        height: 200,
+                        listeners: {
+                            'change' : function (obj, content) {
+                                if(Ext.getCmp('textarea').length===0){
+                                    Ext.getCmp('reply').disable()
+                                }else {
+                                    Ext.getCmp('reply').enable()
+                                }
+                            }
+                        }
+                    }
+                ],
+
+                buttons: [{
+                    disabled: true,
+                    id: 'reply',
+                    text: 'Reply',
+                    listeners: {
+                        'click': function () {
+                            Ext.MessageBox.show({
+                                title: 'Please wait',
+                                msg: 'Loading items...',
+                                progressText: 'replying...',
+                                width:300,
+                                progress:true,
+                                closable:false,
+                                animEl: 'reply'
+                            });
+
+                            // this hideous block creates the bogus progress
+                            var f = function(v){
+                                return function(){
+                                    if(v == 12){
+                                        Ext.MessageBox.hide();
+                                        Ext.MessageBox.alert('result','success')
+                                    }else{
+                                        var i = v/11;
+                                        Ext.MessageBox.updateProgress(i, Math.round(100*i)+'% completed');
+                                    }
+                                };
+                            };
+                            for(var i = 1; i < 13; i++){
+                                setTimeout(f(i), i*250);
+                            }
+                        }
+                    }
+                }]
+            });
+
+            var tableWindow = new Ext.Window({
+                title: 'reply',
+                // hidden: false,
+                width: 190,
+                height: 110,
+                items: [
+                    {
+                        xtype: 'panel',
+                        items: [{
+                            xtype: 'spinnerfield',
+                            id: 'rows',
+                        },{
+                            xtype: 'spinnerfield',
+                            id: 'cols',
+                        }],
+                        buttons: [
+                            {
+                                text: 'insert',
+                                listeners: {
+                                    'click': function () {
+                                        var row = parseInt(Ext.getCmp('rows').getValue());
+                                        var col = parseInt(Ext.getCmp('cols').getValue());
+                                        data= new Array(row)
+                                        for(var i=0; i<data.length; i++){
+                                            data[i] = new Array(col)
+                                        }
+                                        tpl.overwrite(tablePanel.body, data)
+                                        tableWindow.hide()
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            })
+
+            var contextmenu = new Ext.menu.Menu(
+                {
+                    id:'contextmenu',
+                    items:[
+                        {
+                            text:'Reset',
+                            listeners: {
+                                'click': function () {
+                                    Ext.getCmp('textarea').setValue('');
+                                    Ext.getCmp('reply').disable()
+                                }
+                            }
+                        },
+                        {
+                            text:'Table',
+                            listeners: {
+                                'click': function () {
+                                    tableWindow.show()
+                                }
+                            }
+                        }
+                    ]
+                }
+            )
+
+            Ext.get(document).on('contextmenu', function(e){
+                e.preventDefault();
+                contextmenu.showAt(e.getXY());
+            });
+
+
+            var window = new Ext.Window({
+                title: 'reply',
+                hidden: false,
+                width: 400,
+                autoHeight: true,
+                items: [
+                    panel,
+                    tablePanel
+                ]
+            })
+
+
+        });
+    </script>
+</head>
+<body>
+
+</body>
+</html>
